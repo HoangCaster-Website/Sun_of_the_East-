@@ -700,13 +700,13 @@ window.SUN_MENU_DATA = {
           ]
         },
         {
-          title: "Spezialmenüs des Hauses",
-          note: "Sushi und Phở zum Teilen. Die Phở gibt es wahlweise mit Rindfleisch oder Hähnchen.",
+          title: "Sun of the East Spezialmenüs",
+          note: "Jedes Menü mit Vorspeisen und Desserts nach Wahl.",
           items: [
-            { num: "SM1", name: "Spezialmenü 1", allergens: "1,2,3,4,6,7,11", desc: "2 Phở nach Wahl, Sashimi vom Lachs und Thunfisch, 4 Nigiri, Avocado-, Gurken- und Lachs-Avocado-Maki, California und Tazuna Rolls, 6 Ebi Tempura.", price: "79,90 €" },
-            { num: "SM2", name: "Spezialmenü 2", allergens: "1,2,3,4,6,7,11", desc: "3 Phở nach Wahl, Sashimi vom Lachs und Thunfisch, 6 Nigiri, Avocado-, Gurken-, Lachs- und Ebi-Maki, California und Tiger Rolls, 6 Sake Crunchy.", price: "89,90 €" },
-            { num: "SM3", name: "Spezialmenü 3", allergens: "1,2,3,4,6,7,11", desc: "4 Phở nach Wahl, Thunfisch-Sashimi, 6 Nigiri, Avocado-, Gurken-, Rettich-, Lachs- und Thunfisch-Maki, Lachs-Avocado, California und Dragon Rolls, 12 Lachs-Tempura und Veggie Rolls.", price: "99,90 €" },
-            { num: "SM4", name: "Spezialmenü 4", allergens: "1,2,3,4,6,7,11,c", desc: "4 Phở nach Wahl, Seetangsalat, Sashimi, 8 Nigiri, Avocado-, Gurken-, Lachs-Avocado-, Thunfisch-Gurken- und California Maki, Veggie und Tori Rolls, Tiger Rolls, 12 Lachs-Tempura und California Rolls.", price: "112,90 €" }
+            { num: "SM1", name: "Spezialmenü 1", allergens: "1,2,3,4,6,7,11", desc: "2 nach Wahl, Sashimi vom Lachs und Thunfisch, 4 Nigiri, Avocado-, Gurken- und Lachs-Avocado-Maki, California und Tazuna Rolls, 6 Ebi Tempura.", price: "79,90 €" },
+            { num: "SM2", name: "Spezialmenü 2", allergens: "1,2,3,4,6,7,11", desc: "3 nach Wahl, Sashimi vom Lachs und Thunfisch, 6 Nigiri, Avocado-, Gurken-, Lachs- und Ebi-Maki, California und Tiger Rolls, 6 Sake Crunchy.", price: "89,90 €" },
+            { num: "SM3", name: "Spezialmenü 3", allergens: "1,2,3,4,6,7,11", desc: "4 nach Wahl, Sashimi vom Lachs und Thunfisch, 6 Nigiri, Avocado-, Gurken-, Rettich-, Lachs- und Thunfisch-Maki, Lachs-Avocado, California und Dragon Rolls, 12 Lachs-Tempura und Veggie Rolls.", price: "99,90 €" },
+            { num: "SM4", name: "Spezialmenü 4", allergens: "1,2,3,4,6,7,11,c", desc: "4 nach Wahl, Seetangsalat, Sashimi, 8 Nigiri, Avocado-, Gurken-, Lachs-Avocado-, Thunfisch-Gurken- und California Maki, Veggie und Tori Rolls, Tiger Rolls, 12 Lachs-Tempura und California Rolls.", price: "112,90 €" }
           ]
         }
       ]
