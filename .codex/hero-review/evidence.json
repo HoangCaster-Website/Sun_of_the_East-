@@ -1,0 +1,42 @@
+{
+  "contract": "Introduce the restaurant on a light, photo-led homepage with a clearly visible menu action and reservation action. Use the restaurant's own food photos and keep both actions reachable on desktop and mobile. The homepage hero must have no video element, and opening the homepage must make no MP4 request.",
+  "targetViewports": ["1440x900", "390x844"],
+  "accessibility": {
+    "status": "pass",
+    "evidence": "Chrome keyboard Tab showed a visible focus ring on the menu action, and Enter opened the menu. Both actions measured at least 44 px high. Reduced-motion emulation suppressed the hero entrance animations. Sampled text and caption colors reached at least 5.36:1 contrast. Photos have descriptive alt text."
+  },
+  "responsive": {
+    "status": "pass",
+    "evidence": "The hero uses two columns at 1440 px and stacks at 390 px and 320 px without horizontal overflow. The populated desktop cart and navigation fit at 1440, 1361, 1280 and 1201 px. The menu drawer appears at 1200 px and opens and closes on mobile."
+  },
+  "contentStates": {
+    "loading": {
+      "status": "not-applicable",
+      "reason": "The hero contains static HTML. The photo containers reserve space using CSS aspect ratios and the image dimensions are declared in the markup."
+    },
+    "empty": {
+      "status": "not-applicable",
+      "reason": "The hero has no search, filters or user-generated content."
+    },
+    "error": {
+      "status": "pass",
+      "evidence": "A blocked photo request left the image frame and its alt text in place and preserved the main actions."
+    },
+    "partial": {
+      "status": "pass",
+      "evidence": "Blocking the sushi photo left the phở photo loaded and the menu and reservation links visible."
+    },
+    "success": {
+      "status": "pass",
+      "evidence": "Chrome loaded both new photos without any MP4 request on desktop or mobile. Menu and reservation links reached their sections. Triggering the independent kitchen video loaded and played the MP4. No uncaught JavaScript errors were reported."
+    },
+    "permission": {
+      "status": "not-applicable",
+      "reason": "The hero uses public content and same-page anchor links."
+    }
+  },
+  "renderedEvidence": [
+    { "viewport": "1440x900", "artifact": "desktop.png", "observation": "The light hero shows the restaurant name, menu and reservation actions beside a collage of the restaurant's food photos." },
+    { "viewport": "390x844", "artifact": "mobile.png", "observation": "The headline and actions appear above the photo collage, with the hero and header fitting the portrait viewport." }
+  ]
+}

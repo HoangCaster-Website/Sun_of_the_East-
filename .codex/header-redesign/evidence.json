@@ -1,0 +1,43 @@
+{
+  "contract": "Redesign the opening and navigation to use a full-width, two-row desktop masthead and a photo diptych beside an indigo-and-coral introduction. Use the restaurant's existing images, make menu and reservation actions visible on mobile, and keep the landing section free of video.",
+  "targetViewports": ["1440x900", "390x844"],
+  "accessibility": {
+    "status": "pass",
+    "evidence": "Keyboard Tab exposed the hero focus style and Enter reached the reservation section. Opening the mobile drawer focused its first link, and Escape returned focus to the toggle. Primary controls have 44 px or larger touch targets, both images have German alt text, and reduced-motion emulation suppressed the entrance animation. Sampled header and hero text contrast ranged from 6.55:1 to 15:1."
+  },
+  "responsive": {
+    "status": "pass",
+    "evidence": "The centered desktop brand sits above the navigation. Desktop photos sit beside the copy; 390 px shows the intro and both photos stacked. The header and functional hero content fit at 320, 520, 768, 919, 920, 1280 and 1920 px. The single-row navigation switches at the 920 px breakpoint."
+  },
+  "contentStates": {
+    "loading": {
+      "status": "not-applicable",
+      "reason": "The header and hero are static HTML. The photo positions reserve room independently of image decoding."
+    },
+    "empty": {
+      "status": "not-applicable",
+      "reason": "The opening section uses fixed restaurant copy and has no data-driven result list."
+    },
+    "error": {
+      "status": "pass",
+      "evidence": "Blocking one hero image left its German alt text available and the menu action visible."
+    },
+    "partial": {
+      "status": "pass",
+      "evidence": "With the sushi photo blocked, the phở photo still loaded and the hero retained its layout."
+    },
+    "success": {
+      "status": "pass",
+      "evidence": "Both photos loaded on the homepage without an MP4 request. Verified navigation to home, menu and reservations, active menu highlighting, the cart badge and cart drawer. No uncaught JavaScript exceptions were observed."
+    },
+    "permission": {
+      "status": "not-applicable",
+      "reason": "The public header and hero require no browser permission or account."
+    }
+  },
+  "renderedEvidence": [
+    { "viewport": "1440x900", "artifact": "desktop.png", "observation": "The desktop masthead and two image panels sit beside the indigo opening section with both main actions visible." },
+    { "viewport": "390x844", "artifact": "mobile.png", "observation": "On mobile, the title, actions and address appear before the two side-by-side photos." },
+    { "viewport": "390x844", "artifact": "mobile-navigation.png", "observation": "The open mobile drawer matches the masthead and surfaces contact and reservation links." }
+  ]
+}

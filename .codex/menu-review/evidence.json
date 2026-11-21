@@ -1,0 +1,44 @@
+{
+  "contract": "Restaurant guests should be able to browse a category, compare dishes and their prices, and add a variant to the cart from the web menu. The menu uses the site's ivory, gold and jade palette, the original dish photos and existing German menu data. The desktop target shows the category and the start of the dishes, while the mobile target uses touch-sized controls and a single-column dish list.",
+  "targetViewports": ["1440x900", "390x844"],
+  "accessibility": {
+    "status": "pass",
+    "evidence": "ArrowRight activates the next tab and retains visible keyboard focus. Variant buttons include the variant in their labels and the quantity control retains focus after adding. The primary controls use 44 px touch targets. Reduced-motion emulation suppressed the menu animations and the flying cart indicator. Sampled body, price, and category copy pairs reached at least 5.69:1 contrast."
+  },
+  "responsive": {
+    "status": "pass",
+    "evidence": "Desktop shows a two-column dish grid and split image header. Mobile shows one column, a single filter row at 390 px, and working horizontal tab controls. All ten categories fit at 320 px, including long names and quantity steppers."
+  },
+  "contentStates": {
+    "loading": {
+      "status": "not-applicable",
+      "reason": "Category, filter and search results render synchronously from the menu data script. Lazy photos have a sized background area."
+    },
+    "empty": {
+      "status": "pass",
+      "evidence": "A search with no matches announced zero results and displayed a prompt to change the query or filter."
+    },
+    "error": {
+      "status": "pass",
+      "evidence": "Blocking menu-data.js showed the unavailable message and kept the PDF link visible. The local PDF responded with HTTP 200."
+    },
+    "partial": {
+      "status": "pass",
+      "evidence": "Blocking the first category image removed the broken image while preserving the category heading and the list of dishes."
+    },
+    "success": {
+      "status": "pass",
+      "evidence": "Verified category switching, photo entrance, search and filter state, group links, allergen details, variant quantity, cart persistence and the generated WhatsApp order URL in Chrome."
+    },
+    "permission": {
+      "status": "not-applicable",
+      "reason": "Browsing, filtering and adding dishes to the local cart require no login or browser permission."
+    }
+  },
+  "renderedEvidence": [
+    { "viewport": "1440x900", "artifact": "desktop.png", "observation": "The menu title, PDF, category tabs, search, filters and photo header appear in the first menu viewport." },
+    { "viewport": "1440x900", "artifact": "desktop-dishes.png", "observation": "The first category's dish cards and variant options appear in a two-column grid." },
+    { "viewport": "390x844", "artifact": "mobile.png", "observation": "The menu controls and photo header fit the portrait viewport." },
+    { "viewport": "390x844", "artifact": "mobile-dishes.png", "observation": "The mobile dish list uses a single column with full-width option rows." }
+  ]
+}

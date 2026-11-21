@@ -1,0 +1,46 @@
+{
+  "contract": "Give the German restaurant website an editorial look with an oversized masthead, a panoramic real food photo and a brick-red, ink and ivory palette. Keep the menu and reservation actions visible on arrival. Make featured dishes link into the menu. Keep desktop categories visible during menu scrolling and offer horizontal categories on phones. Retain the existing restaurant and menu data and the video-free homepage hero.",
+  "targetViewports": ["1440x900", "390x844"],
+  "accessibility": {
+    "status": "pass",
+    "evidence": "Native key events verified vertical ArrowDown and Home navigation and horizontal ArrowRight navigation. Tab roles, selected state and orientation matched the viewport. The hero and menu expose visible focus outlines and use large buttons. Reduced-motion emulation suppressed the hero animations. Sampled hero, menu and button text pairs measured at least 5.88:1 contrast."
+  },
+  "responsive": {
+    "status": "pass",
+    "evidence": "At 1440 px the menu rail stays visible while scrolling, and switching categories deep in the list returns to the heading. At 390 px the menu uses a horizontal strip and the mobile drawer works. Also checked title, navigation, menu and opening-hours text at 320, 721, 1039, 1040, 1201 and 1920 px."
+  },
+  "contentStates": {
+    "loading": {
+      "status": "not-applicable",
+      "reason": "The menu renders from its local data script during initialization. Category switches and search perform no data fetch. The hero photo and category photograph reserve layout space."
+    },
+    "empty": {
+      "status": "pass",
+      "evidence": "A query with no match showed the German zero-result status and guidance."
+    },
+    "error": {
+      "status": "pass",
+      "evidence": "Blocking menu-data.js showed the German unavailable message and kept the PDF reachable. The local PDF responded with HTTP 200."
+    },
+    "partial": {
+      "status": "pass",
+      "evidence": "Blocking the opening category's photograph kept its headline, summary and dishes intact."
+    },
+    "success": {
+      "status": "pass",
+      "evidence": "Verified a featured link, all ten tabs, search, cart, allergens, gallery, PDF and both German WhatsApp drafts. The homepage loaded the hero photo without an MP4 request. The immutable dish fields matched the previous 257 entries. No uncaught JavaScript exceptions were observed."
+    },
+    "permission": {
+      "status": "not-applicable",
+      "reason": "The public site and local cart require no login or browser permission."
+    }
+  },
+  "renderedEvidence": [
+    { "viewport": "1440x900", "artifact": "desktop.png", "observation": "The new masthead, call-to-action buttons and panoramic restaurant photo fit the desktop viewport." },
+    { "viewport": "1440x900", "artifact": "desktop-kitchen.png", "observation": "Four featured categories use dish photos and direct links into their respective menu tabs." },
+    { "viewport": "1440x900", "artifact": "desktop-menu.png", "observation": "The category rail sits beside the search and menu, with visible first dishes and legible prices." },
+    { "viewport": "1440x900", "artifact": "desktop-reservation.png", "observation": "The opening-hours panel and reservation form use the new visual style and legible controls." },
+    { "viewport": "390x844", "artifact": "mobile.png", "observation": "The two-line masthead and both actions appear above the hero photo." },
+    { "viewport": "390x844", "artifact": "mobile-menu.png", "observation": "The mobile category strip, filters and compact category header fit the portrait viewport." }
+  ]
+}
