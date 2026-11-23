@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sun of the East | Asiatische Küche &amp; Sushi-Bar in Schweinfurt</title>
-  <meta name="description" content="Sun of the East in Schweinfurt – asiatische Küche, Sushi, Sashimi, Phở, Wok-Spezialitäten und hausgemachte Getränke. Bestellen Sie per WhatsApp oder reservieren Sie einen Tisch am Markt 29.">
+  <meta name="description" content="Sun of the East in Schweinfurt – asiatische Küche, Sushi, Sashimi, Phở, Wok-Spezialitäten und hausgemachte Getränke. Bestellen Sie online oder reservieren Sie einen Tisch am Markt 29.">
   <meta name="keywords" content="Sun of the East Schweinfurt, Sushi Schweinfurt, Asia Restaurant Schweinfurt, Asiatisches Restaurant Schweinfurt, Sushi Bar Schweinfurt, Pho Schweinfurt">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#FAF6F0">
@@ -370,7 +370,7 @@
             </div>
             <div class="menu-live-order" id="menuLiveOrder" hidden>
               <span id="menuLiveOrderText"></span>
-              <button type="button" class="btn btn--whatsapp btn--sm" id="menuLiveOrderBtn">Jetzt per WhatsApp bestellen &rarr;</button>
+              <button type="button" class="btn btn--gold btn--sm" id="menuLiveOrderBtn">Zur Bestellung &rarr;</button>
             </div>
             <div class="menu-footer-note">
               <span>Hochgestellte Zahlen und Buchstaben kennzeichnen Allergene und Zusatzstoffe. Alle Gerichte gibt es auch zum Mitnehmen.</span>
@@ -394,7 +394,7 @@
               Im Herzen von Schweinfurt, direkt am Markt 29, verbindet das Sun of the East die Vielfalt der asiatischen Küche mit moderner Sushi-Kultur. Unsere Speisekarte vereint aromatische vietnamesische Klassiker wie Phở und Bún, feine japanische Sushi- und Sashimi-Kreationen sowie frisch zubereitete asiatische Wok-Gerichte.
             </p>
             <p>
-              Genießen Sie unsere Spezialitäten in entspannter Atmosphäre vor Ort oder stellen Sie Ihre Wunschgerichte direkt hier auf der Website zusammen und senden Sie Ihre Bestellung bequem per WhatsApp.
+              Genießen Sie unsere Spezialitäten vor Ort oder stellen Sie Ihre Bestellung direkt hier auf der Website zusammen.
             </p>
 
             <div class="about-pillars">
@@ -1101,21 +1101,20 @@
           </div>
           <div class="form-field">
             <label for="orderName">Ihr Name *</label>
-            <input type="text" id="orderName" class="form-input" placeholder="Vor- und Nachname" required>
+            <input type="text" id="orderName" class="form-input" placeholder="Vor- und Nachname" maxlength="120" required>
           </div>
           <div class="form-field">
             <label for="orderPhone">Telefonnummer *</label>
-            <input type="tel" id="orderPhone" class="form-input" placeholder="z. B. 0160 1234567" required>
+            <input type="tel" id="orderPhone" class="form-input" placeholder="z. B. 0160 1234567" maxlength="50" required>
           </div>
           <div class="form-field">
             <label for="orderTime">Gewünschte Uhrzeit</label>
-            <input type="text" id="orderTime" class="form-input" placeholder="z. B. so bald wie möglich oder 18:30 Uhr">
+            <input type="text" id="orderTime" class="form-input" placeholder="z. B. so bald wie möglich oder 18:30 Uhr" maxlength="120">
           </div>
           <div class="form-field">
             <label for="orderNote">Anmerkungen / Sonderwünsche</label>
-            <textarea id="orderNote" class="form-textarea" placeholder="z. B. Nudeln statt Reis (+2,00 €), zusätzliche Stäbchen oder weniger scharf"></textarea>
+            <textarea id="orderNote" class="form-textarea" placeholder="z. B. Nudeln statt Reis (+2,00 €), zusätzliche Stäbchen oder weniger scharf" maxlength="2000"></textarea>
           </div>
-          <p class="cart-print-hint">* Pflichtfelder für WhatsApp</p>
         </form>
       </div>
 
@@ -1124,23 +1123,15 @@
           <span>Gesamtbetrag</span>
           <span class="cart-total-price" id="cartTotalPrice">0,00 €</span>
         </div>
-        <button type="button" class="btn btn--whatsapp btn--full" id="sendWhatsAppOrderBtn">
+        <p class="cart-order-status" id="cartOrderStatus" role="status"></p>
+        <button type="submit" class="btn btn--whatsapp btn--full" form="cartOrderForm" id="sendWhatsAppOrderBtn">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.06 0C5.5 0 .16 5.34.16 11.9c0 2.1.55 4.15 1.6 5.95L0 24l6.33-1.66a11.85 11.85 0 0 0 5.73 1.46h.01c6.56 0 11.9-5.34 11.9-11.9 0-3.18-1.24-6.17-3.45-8.42ZM12.07 21.8h-.01a9.87 9.87 0 0 1-5.04-1.38l-.36-.21-3.76.99 1-3.66-.24-.38a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.13 1.03 7 2.9a9.82 9.82 0 0 1 2.9 7c0 5.46-4.44 9.89-9.88 9.89Z"/></svg>
           Per WhatsApp bestellen
         </button>
-        <div class="cart-print" role="group" aria-labelledby="cartPrintLabel" aria-describedby="cartPrintHint">
-          <p id="cartPrintLabel">Bestellbon drucken</p>
-          <div class="cart-print-options">
-            <button type="button" class="btn btn--outline btn--sm" data-print-order="58" aria-label="Bestellbon auf 58 mm drucken">58 mm</button>
-            <button type="button" class="btn btn--outline btn--sm" data-print-order="80" aria-label="Bestellbon auf 80 mm drucken">80 mm</button>
-          </div>
-          <p class="cart-print-hint" id="cartPrintHint">Im Druckdialog den Bondrucker und die passende Papierbreite auswählen.</p>
-        </div>
       </div>
     </aside>
   </div>
 
-  <article class="order-receipt" id="orderReceipt"></article>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <!-- Lightbox -->
@@ -1195,7 +1186,7 @@
         <h4>Verantwortliche Stelle</h4>
         <p>Sun of the East – Asiatische Küche &amp; Sushi-Bar<br>Markt 29, 97421 Schweinfurt<br>Telefon: +49 160 92978457 · E-Mail: sunoftheeast.sw@gmail.com</p>
         <h4>Bestellungen &amp; Reservierungen per WhatsApp</h4>
-        <p>Wenn Sie eine Bestellung oder Tischreservierung über WhatsApp senden, werden Ihre Angaben lokal im Browser zusammengestellt und erst durch Ihr aktives Absenden in WhatsApp an uns übermittelt. Ihr Warenkorb wird ausschließlich lokal in Ihrem Browser (localStorage) gespeichert.</p>
+        <p>Wenn Sie eine Bestellung vorbereiten, speichern wir die Bestelldaten zur Anzeige des Bestellbons. Die Bestellnachricht mit dem Link zum Bon und Anfragen zur Tischreservierung übermitteln Sie durch Absenden in WhatsApp. Ihr Warenkorb wird lokal in Ihrem Browser gespeichert.</p>
         <h4>Externe Dienste</h4>
         <p>Zur Darstellung unseres Standorts nutzen wir Google Maps sowie Links zu WhatsApp und Facebook. Es gelten die jeweiligen Datenschutzbestimmungen der Anbieter.</p>
       </div>

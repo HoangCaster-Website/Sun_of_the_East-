@@ -4,7 +4,7 @@
  * wurden exakt aus Sun_of_the_East_Redesigned_24_Pages.pdf übernommen.
  */
 
-window.SUN_MENU_DATA = {
+const sunMenuData = {
   allergene: [
     { code: "01", label: "Glutenhaltiges Getreide (Weizen, Gerste)" },
     { code: "02", label: "Krebstiere" },
@@ -990,3 +990,6 @@ window.SUN_MENU_DATA = {
     }
   ]
 };
+
+if (typeof window !== "undefined") window.SUN_MENU_DATA = sunMenuData;
+if (typeof module !== "undefined" && module.exports) module.exports = sunMenuData;

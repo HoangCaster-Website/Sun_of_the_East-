@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="de-DE">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <meta name="referrer" content="no-referrer">
+  <title>Bestellbon drucken | Sun of the East</title>
+  <link rel="icon" type="image/png" href="./images/logo-sun-of-the-east.png">
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/bon-drucken.css">
+  <script src="./js/bon-drucken.js" defer></script>
+</head>
+<body class="staff-print-page">
+  <main class="staff-print-panel">
+    <p class="staff-print-brand">Sun of the East</p>
+    <section id="manualOrder" hidden>
+      <h1>Bestellbon drucken</h1>
+
+      <div class="form-field staff-print-field">
+        <label for="orderMessage">Empfangene WhatsApp-Bestellung</label>
+        <p id="orderMessageHint">Kopieren Sie die empfangene Nachricht aus WhatsApp und fügen Sie sie hier ein.</p>
+        <textarea id="orderMessage" class="form-textarea" rows="8" autocomplete="off" spellcheck="false" aria-describedby="orderMessageHint"></textarea>
+      </div>
+
+      <div class="staff-print-buttons" role="group" aria-label="Papierbreite" aria-describedby="printHint">
+        <button type="button" class="btn btn--outline" data-print-order="58" disabled>58 mm drucken</button>
+        <button type="button" class="btn btn--outline" data-print-order="80" disabled>80 mm drucken</button>
+      </div>
+      <p id="printHint" class="staff-print-hint">Wählen Sie im Druckdialog den Bondrucker und dieselbe Papierbreite.</p>
+      <button type="button" class="cart-clear-btn staff-print-reset" id="clearOrder" disabled>Neue Bestellung</button>
+    </section>
+
+    <section id="linkedOrder" hidden>
+      <h1>Bestellbon</h1>
+      <p class="staff-print-hint" id="skipStatus" role="status" hidden>Druck übersprungen.</p>
+      <button type="button" class="btn btn--outline reopen-receipt" id="reopenReceipt">Bestellbon anzeigen</button>
+    </section>
+  </main>
+
+  <dialog class="staff-receipt-dialog" id="receiptDialog" aria-labelledby="receiptDialogTitle">
+    <header class="receipt-dialog-header">
+      <h1 id="receiptDialogTitle" tabindex="-1" autofocus>Bestellung ansehen</h1>
+      <p class="staff-print-hint" id="receiptStatus" role="status">Bestellung wird geladen …</p>
+    </header>
+    <article class="order-receipt" id="orderReceipt" aria-labelledby="receiptTitle" hidden>
+      <header class="order-receipt-header">
+        <h2 class="receipt-print-name">Sun of the East</h2>
+        <h2 class="order-receipt-reference" id="receiptTitle">Bestellbon</h2>
+      </header>
+      <p class="order-receipt-details" id="receiptDetails"></p>
+      <ul class="order-receipt-items" id="receiptItems" hidden></ul>
+      <p class="order-receipt-total" id="receiptTotal" hidden>
+        <span>Gesamtbetrag</span>
+        <span class="order-receipt-price" id="receiptAmount"></span>
+      </p>
+    </article>
+
+    <div class="staff-receipt-actions">
+      <div id="receiptPrintOptions" hidden>
+        <div class="form-field">
+          <label for="paperWidth">Papierbreite</label>
+          <select class="form-select" id="paperWidth">
+            <option value="58">58 mm</option>
+            <option value="80" selected>80 mm</option>
+          </select>
+        </div>
+        <p class="staff-print-hint">Wählen Sie im Druckdialog den Bondrucker und dieselbe Papierbreite.</p>
+      </div>
+      <div class="staff-print-buttons">
+        <button type="button" class="btn btn--gold" id="printLinkedOrder" hidden>Bestellbon drucken</button>
+        <button type="button" class="btn btn--outline" id="skipLinkedOrder">Überspringen</button>
+      </div>
+    </div>
+  </dialog>
+</body>
+</html>

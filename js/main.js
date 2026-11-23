@@ -8,8 +8,11 @@
 (function () {
   "use strict";
 
-  const WHATSAPP_NUMBER = "4916092978457";
+  const RESERVATION_WHATSAPP_NUMBER = "4916092978457";
+  const LOCAL_ORDER_SERVER = "http://localhost:3000/";
+  const isLocalPreview = /^http:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):550[01]$/.test(location.origin);
   const CART_STORAGE_KEY = "sun_of_the_east_cart_v1";
+  const ORDER_RETRY_KEY = "sun_of_the_east_order_retry";
   const euroFormatter = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" });
   const data = window.SUN_MENU_DATA;
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -206,6 +209,8 @@
      4. WARENKORB STATE + INLINE MENU STEPPERS + BESTELLUNG
      ------------------------------------------------------------------------ */
   let cart = [];
+  let preparingOrder = false;
+  let orderDraft = null;
   try {
     const saved = localStorage.getItem(CART_STORAGE_KEY);
     if (saved) cart = JSON.parse(saved);
@@ -214,6 +219,10 @@
   }
 
   function saveCart() {
+    orderDraft = null;
+    try {
+      sessionStorage.removeItem(ORDER_RETRY_KEY);
+    } catch {}
     try {
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
     } catch (e) {}
@@ -232,7 +241,13 @@
     return found ? found.qty : 0;
   }
 
+  function cartIsLocked() {
+    if (preparingOrder) showToast("Ihre Bestellung wird gerade vorbereitet.");
+    return preparingOrder;
+  }
+
   function addToCart({ id, num, name, variant, priceStr }, triggerEl) {
+    if (cartIsLocked()) return;
     const unitPrice = parsePrice(priceStr);
     if (unitPrice === null) {
       showToast("Dieses Getränk ist auf Anfrage erhältlich.");
@@ -251,6 +266,7 @@
   }
 
   function changeCartQty(id, delta) {
+    if (cartIsLocked()) return;
     const idx = cart.findIndex((it) => it.id === id);
     if (idx === -1) return;
     cart[idx].qty += delta;
@@ -260,6 +276,7 @@
   }
 
   function clearCart() {
+    if (cartIsLocked()) return;
     cart = [];
     saveCart();
     updateCartUI(false);
@@ -324,6 +341,10 @@
     }
 
     if (cartTotalPrice) cartTotalPrice.textContent = formatPrice(total);
+    if (cartOrderStatus?.dataset.state === "ready") {
+      cartOrderStatus.textContent = "";
+      delete cartOrderStatus.dataset.state;
+    }
     if (menuCartCount && menuCartCount.textContent !== String(count)) {
       menuCartCount.textContent = String(count);
       pulseMenuControl(menuCartCount);
@@ -405,21 +426,28 @@
 
   const orderName = document.getElementById("orderName");
   const orderPhone = document.getElementById("orderPhone");
+  const cartOrderForm = document.getElementById("cartOrderForm");
+  const cartOrderStatus = document.getElementById("cartOrderStatus");
+  const sendWhatsAppOrderBtn = document.getElementById("sendWhatsAppOrderBtn");
 
-  function getOrderDetailLines() {
-    const type = document.getElementById("orderType")?.value ?? "Abholung im Restaurant";
-    const name = orderName?.value.trim();
-    const phone = orderPhone?.value.trim();
-    const time = document.getElementById("orderTime")?.value.trim();
-    const note = document.getElementById("orderNote")?.value.trim();
-
-    return [
-      `Bestellart: ${type}`,
-      name && `Name: ${name}`,
-      phone && `Telefonnummer: ${phone}`,
-      time && `Gewünschte Uhrzeit: ${time}`,
-      note && `Anmerkung: ${note}`
-    ].filter(Boolean);
+  function getOrderDetails() {
+    if (!cart.length) {
+      showToast("Bitte legen Sie zuerst etwas in den Warenkorb.");
+      return null;
+    }
+    const missingField = [orderName, orderPhone].find((field) => !field.value.trim());
+    if (missingField) {
+      showToast("Bitte geben Sie Ihren Namen und Ihre Telefonnummer an.");
+      missingField.focus();
+      return null;
+    }
+    return {
+      type: document.getElementById("orderType").value,
+      name: orderName.value.trim(),
+      phone: orderPhone.value.trim(),
+      time: document.getElementById("orderTime").value.trim(),
+      note: document.getElementById("orderNote").value.trim()
+    };
   }
 
   function getOrderItemLabel(item) {
@@ -427,76 +455,130 @@
     return `${item.qty} × [${item.num}] ${item.name}${variant}`;
   }
 
-  const sendWhatsAppOrderBtn = document.getElementById("sendWhatsAppOrderBtn");
-  if (sendWhatsAppOrderBtn) {
-    sendWhatsAppOrderBtn.addEventListener("click", () => {
-      if (!cart.length) {
-        showToast("Bitte legen Sie zuerst etwas in den Warenkorb.");
-        return;
-      }
-      const missingCustomerField = [orderName, orderPhone].find((field) => !field?.value.trim());
-      if (missingCustomerField !== undefined) {
-        showToast("Bitte geben Sie Ihren Namen und Ihre Telefonnummer an.");
-        missingCustomerField?.focus();
-        return;
-      }
+  async function getOrderRequestId(content) {
+    if (orderDraft?.content === content) return orderDraft.requestId;
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    let requestId = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 
-      const lines = [
-        "Liebes Team von Sun of the East,",
-        "ich möchte gerne folgende Bestellung aufgeben:",
-        ""
-      ];
-      cart.forEach((item) => {
-        lines.push(`• ${getOrderItemLabel(item)} – ${formatPrice(item.unitPrice * item.qty)}`);
-      });
-      lines.push(
-        "",
-        `Gesamtbetrag: ${formatPrice(getCartTotal())}`,
-        ...getOrderDetailLines(),
-        "",
-        "Vielen Dank!"
-      );
+    if (crypto.subtle) {
+      try {
+        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(content));
+        const fingerprint = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+        const previous = JSON.parse(sessionStorage.getItem(ORDER_RETRY_KEY));
+        if (previous?.fingerprint === fingerprint && /^[a-f0-9]{32}$/.test(previous.requestId)) {
+          requestId = previous.requestId;
+        } else {
+          sessionStorage.setItem(ORDER_RETRY_KEY, JSON.stringify({ fingerprint, requestId }));
+        }
+      } catch {
+        // A blocked session store still allows retries while this page is open.
+      }
+    }
 
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank", "noopener,noreferrer");
-    });
+    orderDraft = { content, requestId };
+    return requestId;
   }
 
-  const orderReceipt = document.getElementById("orderReceipt");
-  if (orderReceipt) {
-    document.querySelectorAll("[data-print-order]").forEach((button) => {
-      button.addEventListener("click", () => {
-        if (!cart.length) {
-          showToast("Bitte legen Sie zuerst etwas in den Warenkorb.");
+  function openWhatsAppOrder(details, { reference, receiptUrl, whatsappNumber }) {
+    const lines = [
+      "Liebes Team von Sun of the East,",
+      "ich möchte gerne folgende Bestellung aufgeben:",
+      "",
+      `Bestellung ${reference}`,
+      "Bestellbon öffnen und drucken",
+      receiptUrl,
+      "",
+      ...cart.map((item) => `• ${getOrderItemLabel(item)} – ${formatPrice(item.unitPrice * item.qty)}`),
+      "",
+      `Gesamtbetrag: ${formatPrice(getCartTotal())}`,
+      `Bestellart: ${details.type}`,
+      `Name: ${details.name}`,
+      `Telefonnummer: ${details.phone}`,
+      ...(details.time ? [`Gewünschte Uhrzeit: ${details.time}`] : []),
+      ...(details.note ? [`Anmerkung: ${details.note}`] : []),
+      "",
+      "Vielen Dank!"
+    ];
+    const message = encodeURIComponent(lines.join("\n"));
+    const appLink = document.createElement("a");
+    appLink.href = `whatsapp://send?phone=${whatsappNumber}&text=${message}`;
+    appLink.textContent = "WhatsApp-App öffnen";
+    const browserLink = document.createElement("a");
+    browserLink.href = `https://wa.me/${whatsappNumber}?text=${message}`;
+    browserLink.textContent = "Im Browser öffnen";
+    browserLink.target = "_blank";
+    browserLink.rel = "noopener noreferrer";
+    cartOrderStatus.dataset.state = "ready";
+    cartOrderStatus.textContent = "Bitte senden Sie die vorbereitete Nachricht in WhatsApp ab.";
+    cartOrderStatus.append(" ", appLink, " · ", browserLink);
+    appLink.click();
+  }
+
+  function showUnavailableOrderServer() {
+    cartOrderStatus.dataset.state = "error";
+    cartOrderStatus.textContent = "Der Bestellserver ist nicht erreichbar.";
+    if (location.protocol === "file:" || ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname)) {
+      const link = document.createElement("a");
+      link.href = LOCAL_ORDER_SERVER;
+      link.textContent = "Lokalen Bestellserver öffnen";
+      cartOrderStatus.append(" ", link);
+    }
+  }
+
+  if (cartOrderForm && cartOrderStatus && sendWhatsAppOrderBtn) {
+    cartOrderForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (preparingOrder) return;
+      const details = getOrderDetails();
+      if (!details) return;
+      if (location.protocol === "file:") {
+        showUnavailableOrderServer();
+        return;
+      }
+
+      const payload = {
+        ...details,
+        items: cart.map(({ id, qty }) => ({ id, qty })),
+        expectedTotalCents: Math.round(getCartTotal() * 100)
+      };
+      preparingOrder = true;
+      sendWhatsAppOrderBtn.disabled = true;
+      cartOrderStatus.dataset.state = "pending";
+      cartOrderStatus.textContent = "Ihre Bestellung wird vorbereitet …";
+
+      try {
+        const requestId = await getOrderRequestId(JSON.stringify(payload));
+        const ordersUrl = isLocalPreview ? new URL("api/orders", LOCAL_ORDER_SERVER) : "./api/orders";
+        const response = await fetch(ordersUrl, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payload, requestId })
+        });
+        const result = await response.json().catch(() => null);
+        if ((!result && response.ok) || [404, 405, 501].includes(response.status)) {
+          showUnavailableOrderServer();
           return;
         }
+        if (!response.ok || typeof result?.reference !== "string" || typeof result.receiptUrl !== "string"
+            || typeof result.whatsappNumber !== "string" || !/^[1-9]\d{6,14}$/.test(result.whatsappNumber)) {
+          throw new Error(result?.error || "Der Bestellbon konnte gerade nicht erstellt werden. Bitte versuchen Sie es erneut.");
+        }
 
-        const items = cart.map((item) => `
-          <li>
-            <span>${escapeHtml(getOrderItemLabel(item))}</span>
-            <span class="order-receipt-price">${formatPrice(item.unitPrice * item.qty)}</span>
-          </li>
-        `).join("");
-
-        orderReceipt.innerHTML = `
-          <header class="order-receipt-header">
-            <h1>Sun of the East</h1>
-            <p>Bestellbon</p>
-          </header>
-          <div class="order-receipt-details">${getOrderDetailLines().map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>
-          <ul class="order-receipt-items">${items}</ul>
-          <p class="order-receipt-total">
-            <span>Gesamtbetrag</span>
-            <span class="order-receipt-price">${formatPrice(getCartTotal())}</span>
-          </p>
-        `;
-        document.body.dataset.orderPrintWidth = button.dataset.printOrder;
-        window.print();
-      });
-    });
-
-    window.addEventListener("afterprint", () => {
-      delete document.body.dataset.orderPrintWidth;
-      orderReceipt.replaceChildren();
+        openWhatsAppOrder(details, result);
+      } catch (error) {
+        if (error instanceof TypeError && isLocalPreview) {
+          showUnavailableOrderServer();
+          return;
+        }
+        cartOrderStatus.dataset.state = "error";
+        cartOrderStatus.textContent = error instanceof TypeError
+          ? "Die Verbindung ist fehlgeschlagen. Bitte versuchen Sie es erneut."
+          : error.message;
+      } finally {
+        preparingOrder = false;
+        sendWhatsAppOrderBtn.disabled = false;
+      }
     });
   }
 
@@ -569,7 +651,7 @@
         if (note) lines.push(`• Besondere Wünsche: ${note}`);
         lines.push("", "Ich freue mich auf Ihre Bestätigung. Vielen Dank!");
 
-        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank", "noopener,noreferrer");
+        window.open(`https://wa.me/${RESERVATION_WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank", "noopener,noreferrer");
       });
     }
   }

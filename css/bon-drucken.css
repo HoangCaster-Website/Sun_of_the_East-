@@ -1,0 +1,119 @@
+.staff-print-page {
+  min-height: 100vh;
+  padding: clamp(1rem, 5vw, 3rem);
+}
+
+.staff-print-panel,
+.staff-receipt-dialog {
+  width: min(100%, 42rem);
+  margin-inline: auto;
+  padding: clamp(1rem, 4vw, 2rem);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.staff-print-brand { color: var(--gold-dark); font-weight: 700; }
+.staff-print-panel h1,
+.receipt-dialog-header h1 { font: 700 clamp(1.8rem, 5vw, 2.35rem)/1.15 var(--font-display); }
+.staff-print-field { margin-block: 1.35rem 1rem; }
+.staff-print-field p, .staff-print-hint { color: var(--text-secondary); font-size: 0.85rem; }
+.staff-print-field textarea { width: 100%; margin-top: 0.35rem; }
+.staff-print-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; }
+.staff-print-buttons .btn { min-height: 44px; padding-inline: 0.6rem; }
+.staff-print-buttons .btn[hidden] { display: none; }
+.staff-print-panel button:disabled { opacity: 0.55; cursor: default; transform: none; }
+.staff-print-hint { margin-top: 0.55rem; }
+.staff-print-reset { min-height: 44px; margin-top: 0.35rem; }
+.reopen-receipt { margin-top: 0.85rem; }
+.staff-receipt-dialog {
+  margin: auto;
+  width: min(calc(100% - 2rem), 42rem);
+  max-height: 90dvh;
+  overflow: hidden;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-lg);
+}
+.staff-receipt-dialog[open] { display: flex; flex-direction: column; }
+.staff-receipt-dialog::backdrop { background: rgba(34, 27, 20, 0.55); }
+.staff-receipt-dialog > .order-receipt { min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.receipt-dialog-header,
+.staff-receipt-actions { flex-shrink: 0; }
+.staff-receipt-actions { margin-top: 1.15rem; }
+.staff-receipt-actions .form-select { width: min(100%, 10rem); }
+.staff-receipt-actions .staff-print-buttons { margin-top: 0.85rem; }
+.staff-receipt-actions .staff-print-buttons:has(.btn[hidden]) { grid-template-columns: 1fr; }
+#receiptStatus:empty { display: none; }
+
+.order-receipt {
+  margin-top: 1.15rem;
+  padding: 1rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow-wrap: anywhere;
+}
+.receipt-print-name { display: none; }
+.order-receipt-header h2 { font: 700 1.24rem/1.25 var(--font-display); }
+.order-receipt-details { margin-block: 0.65rem; white-space: pre-wrap; }
+.order-receipt-items { list-style: none; border-block: 1px dashed; padding-block: 0.55rem; }
+.order-receipt-items li, .order-receipt-total:not([hidden]) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.55rem;
+}
+.order-receipt-items li + li { margin-top: 0.45rem; }
+.order-receipt-price { text-align: right; white-space: nowrap; }
+.order-receipt-total { margin-top: 0.65rem; font-weight: 700; }
+.print-receipt { display: none; }
+
+@media screen and (max-height: 450px) {
+  .staff-receipt-dialog { padding: 0.75rem 1rem; }
+  .receipt-dialog-header h1 { font-size: 1.4rem; }
+  .staff-receipt-dialog > .order-receipt,
+  .staff-receipt-actions { margin-top: 0.6rem; }
+  .staff-receipt-actions .form-field { flex-direction: row; align-items: center; }
+  .staff-receipt-actions .staff-print-buttons { margin-top: 0.5rem; }
+}
+
+@media print {
+  @page order-receipt {
+    size: auto;
+    margin: 0;
+  }
+
+  html, .staff-print-page {
+    background: #fff;
+    overflow: visible;
+  }
+
+  .staff-print-page { min-height: 0; padding: 0; }
+  .staff-print-page > :not(.print-receipt),
+  .staff-receipt-dialog::backdrop { display: none !important; }
+
+  body[data-order-print-width] > .print-receipt {
+    page: order-receipt;
+    display: block !important;
+    width: 100%;
+    max-width: 72mm;
+    margin: 0;
+    margin-inline: auto;
+    padding: 2mm 0;
+    border: 0;
+    color: #000;
+    font: 10pt/1.35 Arial, sans-serif;
+  }
+
+  body[data-order-print-width="58"] > .print-receipt { max-width: 48mm; }
+  .order-receipt-header { text-align: center; }
+  .receipt-print-name { display: block; }
+  .order-receipt-header h2 { font: bold 12pt/1.2 Arial, sans-serif; }
+  .order-receipt-header .order-receipt-reference { font: 10pt/1.35 Arial, sans-serif; }
+  .order-receipt-details { margin-block: 2mm; }
+  .order-receipt-items { padding-block: 1.5mm; }
+  .order-receipt-items li, .order-receipt-total:not([hidden]) {
+    gap: 2mm;
+    break-inside: avoid;
+  }
+  .order-receipt-items li + li { margin-top: 1.5mm; }
+  .order-receipt-total { margin-top: 2mm; }
+}
