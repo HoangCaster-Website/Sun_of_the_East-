@@ -2,6 +2,13 @@
 <html lang="de-DE">
 <head>
   <meta charset="UTF-8">
+  <script>
+    if (location.hash.startsWith("#b=")) {
+      const receipt = new URL("./bon-drucken.html", location.href);
+      receipt.hash = location.hash;
+      location.replace(receipt.href);
+    }
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sun of the East | Asiatische Küche &amp; Sushi-Bar in Schweinfurt</title>
   <meta name="description" content="Sun of the East in Schweinfurt – asiatische Küche, Sushi, Sashimi, Phở, Wok-Spezialitäten und hausgemachte Getränke. Bestellen Sie online oder reservieren Sie einen Tisch am Markt 29.">
@@ -1186,7 +1193,7 @@
         <h4>Verantwortliche Stelle</h4>
         <p>Sun of the East – Asiatische Küche &amp; Sushi-Bar<br>Markt 29, 97421 Schweinfurt<br>Telefon: +49 160 92978457 · E-Mail: sunoftheeast.sw@gmail.com</p>
         <h4>Bestellungen &amp; Reservierungen per WhatsApp</h4>
-        <p>Wenn Sie eine Bestellung vorbereiten, speichern wir die Bestelldaten zur Anzeige des Bestellbons. Die Bestellnachricht mit dem Link zum Bon und Anfragen zur Tischreservierung übermitteln Sie durch Absenden in WhatsApp. Ihr Warenkorb wird lokal in Ihrem Browser gespeichert.</p>
+        <p>Wenn Sie eine Bestellung vorbereiten, erstellt Ihr Browser aus den Bestelldaten einen Link zum Bestellbon. Personen mit dem Link können den Bon öffnen. Bestellungen und Anfragen zur Tischreservierung übermitteln Sie durch Absenden in WhatsApp. Ihr Warenkorb wird lokal in Ihrem Browser gespeichert.</p>
         <h4>Externe Dienste</h4>
         <p>Zur Darstellung unseres Standorts nutzen wir Google Maps sowie Links zu WhatsApp und Facebook. Es gelten die jeweiligen Datenschutzbestimmungen der Anbieter.</p>
       </div>
@@ -1194,6 +1201,8 @@
   </div>
 
   <script src="./js/menu-data.js"></script>
+  <script src="./js/order-link-catalog.js"></script>
+  <script src="./js/order-link.js"></script>
   <script src="./js/main.js"></script>
 </body>
 </html>

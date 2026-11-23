@@ -14,17 +14,20 @@ if (lanPreviewHost && (!isIPv4(lanPreviewHost) || !/^(10\.|172\.(1[6-9]|2\d|3[01
   throw new Error("ORDER_LAN_PREVIEW_HOST must be a private IPv4 address on this machine.");
 }
 const publicUrl = new URL(process.env.PUBLIC_SITE_URL || `http://${lanPreviewHost || "localhost"}:${port}/`);
-const loopbackHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
-const isLocalOrderServer = publicUrl.protocol === "http:" && loopbackHosts.has(publicUrl.hostname);
+const previewHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
+const isLocalOrderServer = publicUrl.protocol === "http:" && previewHosts.has(publicUrl.hostname);
+if (lanPreviewHost) {
+  previewHosts.add(lanPreviewHost);
+  if (publicUrl.protocol === "http:") previewHosts.add(publicUrl.hostname);
+}
 const localPreviewOrigins = new Set();
 if (isLocalOrderServer || lanPreviewHost) {
-  for (const host of loopbackHosts) {
+  for (const host of previewHosts) {
     for (const previewPort of [port, 5500, 5501]) {
       localPreviewOrigins.add(new URL(`http://${host}:${previewPort}/`).origin);
     }
   }
 }
-if (lanPreviewHost) localPreviewOrigins.add(new URL(`http://${lanPreviewHost}:${port}/`).origin);
 const orderWhatsAppNumber = process.env.ORDER_WHATSAPP_NUMBER?.trim() || "4916092978457";
 if (!/^[1-9]\d{6,14}$/.test(orderWhatsAppNumber)) {
   throw new Error("ORDER_WHATSAPP_NUMBER must be an international phone number with digits only.");

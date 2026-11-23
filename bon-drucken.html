@@ -9,6 +9,8 @@
   <link rel="icon" type="image/png" href="./images/logo-sun-of-the-east.png">
   <link rel="stylesheet" href="./css/style.css">
   <link rel="stylesheet" href="./css/bon-drucken.css">
+  <script src="./js/order-link-catalog.js" defer></script>
+  <script src="./js/order-link.js" defer></script>
   <script src="./js/bon-drucken.js" defer></script>
 </head>
 <body class="staff-print-page">
@@ -23,11 +25,8 @@
         <textarea id="orderMessage" class="form-textarea" rows="8" autocomplete="off" spellcheck="false" aria-describedby="orderMessageHint"></textarea>
       </div>
 
-      <div class="staff-print-buttons" role="group" aria-label="Papierbreite" aria-describedby="printHint">
-        <button type="button" class="btn btn--outline" data-print-order="58" disabled>58 mm drucken</button>
-        <button type="button" class="btn btn--outline" data-print-order="80" disabled>80 mm drucken</button>
-      </div>
-      <p id="printHint" class="staff-print-hint">Wählen Sie im Druckdialog den Bondrucker und dieselbe Papierbreite.</p>
+      <button type="button" class="btn btn--gold btn--full" id="printManualOrder" aria-describedby="printHint" disabled>Bestellbon drucken</button>
+      <p id="printHint" class="staff-print-hint">Wählen Sie im Druckdialog den Bondrucker mit 80-mm-Papier.</p>
       <button type="button" class="cart-clear-btn staff-print-reset" id="clearOrder" disabled>Neue Bestellung</button>
     </section>
 
@@ -57,18 +56,9 @@
     </article>
 
     <div class="staff-receipt-actions">
-      <div id="receiptPrintOptions" hidden>
-        <div class="form-field">
-          <label for="paperWidth">Papierbreite</label>
-          <select class="form-select" id="paperWidth">
-            <option value="58">58 mm</option>
-            <option value="80" selected>80 mm</option>
-          </select>
-        </div>
-        <p class="staff-print-hint">Wählen Sie im Druckdialog den Bondrucker und dieselbe Papierbreite.</p>
-      </div>
+      <p class="staff-print-hint" id="receiptPrintHint" hidden>Wählen Sie im Druckdialog den Bondrucker mit 80-mm-Papier.</p>
       <div class="staff-print-buttons">
-        <button type="button" class="btn btn--gold" id="printLinkedOrder" hidden>Bestellbon drucken</button>
+        <button type="button" class="btn btn--gold" id="printLinkedOrder" aria-describedby="receiptPrintHint" hidden>Bestellbon drucken</button>
         <button type="button" class="btn btn--outline" id="skipLinkedOrder">Überspringen</button>
       </div>
     </div>

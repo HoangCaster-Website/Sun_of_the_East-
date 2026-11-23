@@ -40,7 +40,6 @@
 .receipt-dialog-header,
 .staff-receipt-actions { flex-shrink: 0; }
 .staff-receipt-actions { margin-top: 1.15rem; }
-.staff-receipt-actions .form-select { width: min(100%, 10rem); }
 .staff-receipt-actions .staff-print-buttons { margin-top: 0.85rem; }
 .staff-receipt-actions .staff-print-buttons:has(.btn[hidden]) { grid-template-columns: 1fr; }
 #receiptStatus:empty { display: none; }
@@ -71,7 +70,6 @@
   .receipt-dialog-header h1 { font-size: 1.4rem; }
   .staff-receipt-dialog > .order-receipt,
   .staff-receipt-actions { margin-top: 0.6rem; }
-  .staff-receipt-actions .form-field { flex-direction: row; align-items: center; }
   .staff-receipt-actions .staff-print-buttons { margin-top: 0.5rem; }
 }
 
@@ -90,7 +88,7 @@
   .staff-print-page > :not(.print-receipt),
   .staff-receipt-dialog::backdrop { display: none !important; }
 
-  body[data-order-print-width] > .print-receipt {
+  .staff-print-page > .print-receipt {
     page: order-receipt;
     display: block !important;
     width: 100%;
@@ -103,7 +101,6 @@
     font: 10pt/1.35 Arial, sans-serif;
   }
 
-  body[data-order-print-width="58"] > .print-receipt { max-width: 48mm; }
   .order-receipt-header { text-align: center; }
   .receipt-print-name { display: block; }
   .order-receipt-header h2 { font: bold 12pt/1.2 Arial, sans-serif; }

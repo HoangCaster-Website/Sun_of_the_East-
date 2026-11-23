@@ -2,7 +2,7 @@
   "use strict";
 
   const orderMessage = document.getElementById("orderMessage");
-  const printButtons = document.querySelectorAll("[data-print-order]");
+  const printManualOrder = document.getElementById("printManualOrder");
   const clearOrder = document.getElementById("clearOrder");
   const receiptDialog = document.getElementById("receiptDialog");
   const orderReceipt = document.getElementById("orderReceipt");
@@ -16,8 +16,7 @@
   let printCopy = null;
 
   function updateControls() {
-    const empty = !orderMessage.value.trim();
-    printButtons.forEach((button) => { button.disabled = empty; });
+    printManualOrder.disabled = !orderMessage.value.trim();
     clearOrder.disabled = !orderMessage.value;
   }
 
@@ -66,11 +65,10 @@
   function clearPrintState() {
     printCopy?.remove();
     printCopy = null;
-    delete document.body.dataset.orderPrintWidth;
     if (!token) renderReceipt({ details: "", items: [], total: "" });
   }
 
-  function printReceipt(width) {
+  function printReceipt() {
     printCopy?.remove();
     printCopy = orderReceipt.cloneNode(true);
     printCopy.removeAttribute("id");
@@ -79,7 +77,6 @@
     printCopy.classList.add("print-receipt");
     printCopy.hidden = false;
     document.body.appendChild(printCopy);
-    document.body.dataset.orderPrintWidth = width;
     window.print();
   }
 
@@ -92,15 +89,25 @@
       updateControls();
       orderMessage.focus();
     });
-    printButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const message = orderMessage.value.trim();
-        if (!message) return;
-        renderReceipt(parseWhatsAppOrder(message));
-        printReceipt(button.dataset.printOrder);
-      });
+    printManualOrder.addEventListener("click", () => {
+      const message = orderMessage.value.trim();
+      if (!message) return;
+      renderReceipt(parseWhatsAppOrder(message));
+      printReceipt();
     });
     updateControls();
+  }
+
+  async function readLinkedOrder() {
+    if (token.startsWith("b=") || token.startsWith("bon1=")) return window.SUN_ORDER_LINK.read(location.hash);
+    if (!/^(?:[A-Za-z0-9_-]{22}|[A-Za-z0-9_-]{43})$/.test(token)) return null;
+    const response = await fetch("./api/order-receipt", {
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error("Receipt request failed");
+    return response.json();
   }
 
   async function loadLinkedOrder() {
@@ -120,22 +127,12 @@
     receiptDialog.addEventListener("close", () => reopen.focus());
     receiptDialog.showModal();
 
-    if (!/^(?:[A-Za-z0-9_-]{22}|[A-Za-z0-9_-]{43})$/.test(token)) {
-      status.textContent = "Dieser Bestellbon wurde nicht gefunden.";
-      return;
-    }
-
     try {
-      const response = await fetch("./api/order-receipt", {
-        cache: "no-store",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (response.status === 404) {
+      const order = await readLinkedOrder();
+      if (!order) {
         status.textContent = "Dieser Bestellbon wurde nicht gefunden.";
         return;
       }
-      if (!response.ok) throw new Error("Receipt request failed");
-      const order = await response.json();
       const details = [
         `Bestellart: ${order.type}`, `Name: ${order.name}`, `Telefonnummer: ${order.phone}`,
         ...(order.time ? [`Gewünschte Uhrzeit: ${order.time}`] : []),
@@ -147,7 +144,7 @@
       }));
       renderReceipt({ details, items, total: money.format(order.totalCents / 100), reference: order.reference });
       orderReceipt.hidden = false;
-      document.getElementById("receiptPrintOptions").hidden = false;
+      document.getElementById("receiptPrintHint").hidden = false;
       printButton.hidden = false;
       status.textContent = "";
     } catch {
@@ -155,8 +152,7 @@
       return;
     }
 
-    const paperWidth = document.getElementById("paperWidth");
-    printButton.addEventListener("click", () => printReceipt(paperWidth.value));
+    printButton.addEventListener("click", printReceipt);
   }
 
   window.addEventListener("afterprint", clearPrintState);

@@ -8,11 +8,9 @@
 (function () {
   "use strict";
 
-  const RESERVATION_WHATSAPP_NUMBER = "4916092978457";
-  const LOCAL_ORDER_SERVER = "http://localhost:3000/";
-  const isLocalPreview = /^http:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):550[01]$/.test(location.origin);
+  const RESTAURANT_WHATSAPP_NUMBER = "4916092978457";
+  const BILL_PAGE_URL = "https://hoangcaster-website.github.io/Sun_of_the_East-/";
   const CART_STORAGE_KEY = "sun_of_the_east_cart_v1";
-  const ORDER_RETRY_KEY = "sun_of_the_east_order_retry";
   const euroFormatter = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" });
   const data = window.SUN_MENU_DATA;
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -220,9 +218,6 @@
 
   function saveCart() {
     orderDraft = null;
-    try {
-      sessionStorage.removeItem(ORDER_RETRY_KEY);
-    } catch {}
     try {
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
     } catch (e) {}
@@ -455,73 +450,56 @@
     return `${item.qty} × [${item.num}] ${item.name}${variant}`;
   }
 
-  async function getOrderRequestId(content) {
-    if (orderDraft?.content === content) return orderDraft.requestId;
-    const bytes = crypto.getRandomValues(new Uint8Array(16));
-    let requestId = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
-
-    if (crypto.subtle) {
-      try {
-        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(content));
-        const fingerprint = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
-        const previous = JSON.parse(sessionStorage.getItem(ORDER_RETRY_KEY));
-        if (previous?.fingerprint === fingerprint && /^[a-f0-9]{32}$/.test(previous.requestId)) {
-          requestId = previous.requestId;
-        } else {
-          sessionStorage.setItem(ORDER_RETRY_KEY, JSON.stringify({ fingerprint, requestId }));
-        }
-      } catch {
-        // A blocked session store still allows retries while this page is open.
-      }
-    }
-
-    orderDraft = { content, requestId };
-    return requestId;
+  function snapshotOrder(details) {
+    const items = cart.map(({ num, name, variant, qty, unitPrice }) => ({
+      num, name, variant: variant || "", qty, unitCents: Math.round(unitPrice * 100)
+    }));
+    const content = JSON.stringify({ ...details, items });
+    if (orderDraft?.content === content) return orderDraft.order;
+    const bytes = crypto.getRandomValues(new Uint8Array(6));
+    const reference = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("").toUpperCase();
+    const totalCents = items.reduce((sum, item) => sum + item.qty * item.unitCents, 0);
+    const order = { ...details, reference, items, totalCents };
+    orderDraft = { content, order };
+    return order;
   }
 
-  function openWhatsAppOrder(details, { reference, receiptUrl, whatsappNumber }) {
+  function openWhatsAppOrder(popup, order, receiptUrl) {
     const lines = [
       "Liebes Team von Sun of the East,",
       "ich möchte gerne folgende Bestellung aufgeben:",
       "",
-      `Bestellung ${reference}`,
+      `Bestellung ${order.reference}`,
       "Bestellbon öffnen und drucken",
       receiptUrl,
       "",
-      ...cart.map((item) => `• ${getOrderItemLabel(item)} – ${formatPrice(item.unitPrice * item.qty)}`),
+      ...order.items.map((item) => `• ${getOrderItemLabel(item)} – ${formatPrice(item.unitCents * item.qty / 100)}`),
       "",
-      `Gesamtbetrag: ${formatPrice(getCartTotal())}`,
-      `Bestellart: ${details.type}`,
-      `Name: ${details.name}`,
-      `Telefonnummer: ${details.phone}`,
-      ...(details.time ? [`Gewünschte Uhrzeit: ${details.time}`] : []),
-      ...(details.note ? [`Anmerkung: ${details.note}`] : []),
+      `Gesamtbetrag: ${formatPrice(order.totalCents / 100)}`,
+      `Bestellart: ${order.type}`,
+      `Name: ${order.name}`,
+      `Telefonnummer: ${order.phone}`,
+      ...(order.time ? [`Gewünschte Uhrzeit: ${order.time}`] : []),
+      ...(order.note ? [`Anmerkung: ${order.note}`] : []),
       "",
       "Vielen Dank!"
     ];
-    const message = encodeURIComponent(lines.join("\n"));
-    const appLink = document.createElement("a");
-    appLink.href = `whatsapp://send?phone=${whatsappNumber}&text=${message}`;
-    appLink.textContent = "WhatsApp-App öffnen";
+    const url = new URL("https://api.whatsapp.com/send");
+    url.search = new URLSearchParams({ phone: RESTAURANT_WHATSAPP_NUMBER, text: lines.join("\n") }).toString();
     const browserLink = document.createElement("a");
-    browserLink.href = `https://wa.me/${whatsappNumber}?text=${message}`;
-    browserLink.textContent = "Im Browser öffnen";
+    browserLink.href = url.href;
+    browserLink.textContent = "WhatsApp öffnen";
     browserLink.target = "_blank";
     browserLink.rel = "noopener noreferrer";
     cartOrderStatus.dataset.state = "ready";
     cartOrderStatus.textContent = "Bitte senden Sie die vorbereitete Nachricht in WhatsApp ab.";
-    cartOrderStatus.append(" ", appLink, " · ", browserLink);
-    appLink.click();
-  }
-
-  function showUnavailableOrderServer() {
-    cartOrderStatus.dataset.state = "error";
-    cartOrderStatus.textContent = "Der Bestellserver ist nicht erreichbar.";
-    if (location.protocol === "file:" || ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname)) {
-      const link = document.createElement("a");
-      link.href = LOCAL_ORDER_SERVER;
-      link.textContent = "Lokalen Bestellserver öffnen";
-      cartOrderStatus.append(" ", link);
+    cartOrderStatus.append(" ", browserLink);
+    if (popup && !popup.closed) {
+      try {
+        popup.location.replace(url.href);
+      } catch {
+        // The checkout link remains available when popup navigation is blocked.
+      }
     }
   }
 
@@ -531,50 +509,32 @@
       if (preparingOrder) return;
       const details = getOrderDetails();
       if (!details) return;
-      if (location.protocol === "file:") {
-        showUnavailableOrderServer();
-        return;
-      }
-
-      const payload = {
-        ...details,
-        items: cart.map(({ id, qty }) => ({ id, qty })),
-        expectedTotalCents: Math.round(getCartTotal() * 100)
-      };
       preparingOrder = true;
       sendWhatsAppOrderBtn.disabled = true;
       cartOrderStatus.dataset.state = "pending";
       cartOrderStatus.textContent = "Ihre Bestellung wird vorbereitet …";
 
+      let popup;
       try {
-        const requestId = await getOrderRequestId(JSON.stringify(payload));
-        const ordersUrl = isLocalPreview ? new URL("api/orders", LOCAL_ORDER_SERVER) : "./api/orders";
-        const response = await fetch(ordersUrl, {
-          method: "POST",
-          credentials: "same-origin",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...payload, requestId })
-        });
-        const result = await response.json().catch(() => null);
-        if ((!result && response.ok) || [404, 405, 501].includes(response.status)) {
-          showUnavailableOrderServer();
-          return;
+        popup = window.open("about:blank", "_blank", "popup,width=560,height=720");
+        if (popup) {
+          popup.opener = null;
+          popup.document.title = "WhatsApp";
+          popup.document.body.textContent = "Ihre Bestellung wird für WhatsApp vorbereitet …";
         }
-        if (!response.ok || typeof result?.reference !== "string" || typeof result.receiptUrl !== "string"
-            || typeof result.whatsappNumber !== "string" || !/^[1-9]\d{6,14}$/.test(result.whatsappNumber)) {
-          throw new Error(result?.error || "Der Bestellbon konnte gerade nicht erstellt werden. Bitte versuchen Sie es erneut.");
-        }
+      } catch {
+        popup = null;
+      }
 
-        openWhatsAppOrder(details, result);
-      } catch (error) {
-        if (error instanceof TypeError && isLocalPreview) {
-          showUnavailableOrderServer();
-          return;
-        }
+      try {
+        const order = snapshotOrder(details);
+        const printPage = location.protocol === "http:" ? new URL("./", location.href) : BILL_PAGE_URL;
+        const receiptUrl = await window.SUN_ORDER_LINK.create(order, printPage);
+        openWhatsAppOrder(popup, order, receiptUrl);
+      } catch {
+        if (popup && !popup.closed) popup.close();
         cartOrderStatus.dataset.state = "error";
-        cartOrderStatus.textContent = error instanceof TypeError
-          ? "Die Verbindung ist fehlgeschlagen. Bitte versuchen Sie es erneut."
-          : error.message;
+        cartOrderStatus.textContent = "Der Bestellbon konnte gerade nicht erstellt werden. Bitte prüfen Sie Ihre Bestelldaten.";
       } finally {
         preparingOrder = false;
         sendWhatsAppOrderBtn.disabled = false;
@@ -651,7 +611,7 @@
         if (note) lines.push(`• Besondere Wünsche: ${note}`);
         lines.push("", "Ich freue mich auf Ihre Bestätigung. Vielen Dank!");
 
-        window.open(`https://wa.me/${RESERVATION_WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank", "noopener,noreferrer");
+        window.open(`https://wa.me/${RESTAURANT_WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank", "noopener,noreferrer");
       });
     }
   }
