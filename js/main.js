@@ -203,7 +203,7 @@
   }
 
   /* ------------------------------------------------------------------------
-     4. WARENKORB STATE + INLINE MENU STEPPERS + WHATSAPP BESTELLUNG
+     4. WARENKORB STATE + INLINE MENU STEPPERS + BESTELLUNG
      ------------------------------------------------------------------------ */
   let cart = [];
   try {
@@ -273,19 +273,28 @@
   const cartItemsContainer = document.getElementById("cartItemsContainer");
   const cartTotalPrice = document.getElementById("cartTotalPrice");
   const cartBackdrop = document.getElementById("cartBackdrop");
+  const cartCloseBtn = document.getElementById("cartCloseBtn");
   const menuCartCount = document.getElementById("menuCartCount");
+  let cartOpener = null;
 
-  function openCartDrawer() {
+  function openCartDrawer(event) {
     if (!cartBackdrop) return;
+    cartOpener = event.currentTarget;
     setDrawerOpen(false);
+    cartBackdrop.inert = false;
     cartBackdrop.classList.add("is-open");
     document.body.classList.add("no-scroll");
+    cartCloseBtn?.focus({ preventScroll: true });
   }
 
   function closeCartDrawer() {
-    if (!cartBackdrop) return;
+    if (!cartBackdrop?.classList.contains("is-open")) return;
     cartBackdrop.classList.remove("is-open");
+    cartBackdrop.inert = true;
     document.body.classList.remove("no-scroll");
+    const focusTarget = cartOpener?.closest("[hidden], .is-hidden") ? headerCartBtn : cartOpener;
+    focusTarget?.focus({ preventScroll: true });
+    cartOpener = null;
   }
 
   function updateCartUI(animate) {
@@ -380,7 +389,6 @@
   const headerCartBtn = document.getElementById("headerCartBtn");
   const openCartFromHint = document.getElementById("openCartFromHint");
   const menuLiveOrderBtn = document.getElementById("menuLiveOrderBtn");
-  const cartCloseBtn = document.getElementById("cartCloseBtn");
   if (headerCartBtn) headerCartBtn.addEventListener("click", openCartDrawer);
   if (floatingCartBtn) floatingCartBtn.addEventListener("click", openCartDrawer);
   if (openCartFromHint) openCartFromHint.addEventListener("click", openCartDrawer);
@@ -395,6 +403,30 @@
     });
   });
 
+  const orderName = document.getElementById("orderName");
+  const orderPhone = document.getElementById("orderPhone");
+
+  function getOrderDetailLines() {
+    const type = document.getElementById("orderType")?.value ?? "Abholung im Restaurant";
+    const name = orderName?.value.trim();
+    const phone = orderPhone?.value.trim();
+    const time = document.getElementById("orderTime")?.value.trim();
+    const note = document.getElementById("orderNote")?.value.trim();
+
+    return [
+      `Bestellart: ${type}`,
+      name && `Name: ${name}`,
+      phone && `Telefonnummer: ${phone}`,
+      time && `Gewünschte Uhrzeit: ${time}`,
+      note && `Anmerkung: ${note}`
+    ].filter(Boolean);
+  }
+
+  function getOrderItemLabel(item) {
+    const variant = item.variant ? ` (${item.variant})` : "";
+    return `${item.qty} × [${item.num}] ${item.name}${variant}`;
+  }
+
   const sendWhatsAppOrderBtn = document.getElementById("sendWhatsAppOrderBtn");
   if (sendWhatsAppOrderBtn) {
     sendWhatsAppOrderBtn.addEventListener("click", () => {
@@ -402,18 +434,10 @@
         showToast("Bitte legen Sie zuerst etwas in den Warenkorb.");
         return;
       }
-      const nameEl = document.getElementById("orderName");
-      const phoneEl = document.getElementById("orderPhone");
-      const typeEl = document.getElementById("orderType");
-      const timeEl = document.getElementById("orderTime");
-      const noteEl = document.getElementById("orderNote");
-      const customerName = nameEl ? nameEl.value.trim() : "";
-      const customerPhone = phoneEl ? phoneEl.value.trim() : "";
-
-      if (!customerName || !customerPhone) {
+      const missingCustomerField = [orderName, orderPhone].find((field) => !field?.value.trim());
+      if (missingCustomerField !== undefined) {
         showToast("Bitte geben Sie Ihren Namen und Ihre Telefonnummer an.");
-        if (!customerName && nameEl) nameEl.focus();
-        else if (phoneEl) phoneEl.focus();
+        missingCustomerField?.focus();
         return;
       }
 
@@ -423,21 +447,56 @@
         ""
       ];
       cart.forEach((item) => {
-        const variantPart = item.variant ? ` (${item.variant})` : "";
-        lines.push(`• ${item.qty} × [${item.num}] ${item.name}${variantPart} – ${formatPrice(item.unitPrice * item.qty)}`);
+        lines.push(`• ${getOrderItemLabel(item)} – ${formatPrice(item.unitPrice * item.qty)}`);
       });
       lines.push(
         "",
         `Gesamtbetrag: ${formatPrice(getCartTotal())}`,
-        `Bestellart: ${typeEl ? typeEl.value : "Abholung im Restaurant"}`,
-        `Name: ${customerName}`,
-        `Telefonnummer: ${customerPhone}`
+        ...getOrderDetailLines(),
+        "",
+        "Vielen Dank!"
       );
-      if (timeEl && timeEl.value.trim()) lines.push(`Gewünschte Uhrzeit: ${timeEl.value.trim()}`);
-      if (noteEl && noteEl.value.trim()) lines.push(`Anmerkung: ${noteEl.value.trim()}`);
-      lines.push("", "Vielen Dank!");
 
       window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank", "noopener,noreferrer");
+    });
+  }
+
+  const orderReceipt = document.getElementById("orderReceipt");
+  if (orderReceipt) {
+    document.querySelectorAll("[data-print-order]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (!cart.length) {
+          showToast("Bitte legen Sie zuerst etwas in den Warenkorb.");
+          return;
+        }
+
+        const items = cart.map((item) => `
+          <li>
+            <span>${escapeHtml(getOrderItemLabel(item))}</span>
+            <span class="order-receipt-price">${formatPrice(item.unitPrice * item.qty)}</span>
+          </li>
+        `).join("");
+
+        orderReceipt.innerHTML = `
+          <header class="order-receipt-header">
+            <h1>Sun of the East</h1>
+            <p>Bestellbon</p>
+          </header>
+          <div class="order-receipt-details">${getOrderDetailLines().map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>
+          <ul class="order-receipt-items">${items}</ul>
+          <p class="order-receipt-total">
+            <span>Gesamtbetrag</span>
+            <span class="order-receipt-price">${formatPrice(getCartTotal())}</span>
+          </p>
+        `;
+        document.body.dataset.orderPrintWidth = button.dataset.printOrder;
+        window.print();
+      });
+    });
+
+    window.addEventListener("afterprint", () => {
+      delete document.body.dataset.orderPrintWidth;
+      orderReceipt.replaceChildren();
     });
   }
 
@@ -1149,6 +1208,16 @@
       if (e.key === "ArrowLeft") showLightboxImage(currentGalleryIdx - 1);
       if (e.key === "ArrowRight") showLightboxImage(currentGalleryIdx + 1);
       return;
+    }
+    if (e.key === "Tab" && cartBackdrop?.classList.contains("is-open")) {
+      const controls = cartBackdrop.querySelectorAll(":is(button, input, select, textarea):not(:disabled)");
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      const active = document.activeElement;
+      if (!cartBackdrop.contains(active) || active === (e.shiftKey ? first : last)) {
+        e.preventDefault();
+        (e.shiftKey ? last : first)?.focus();
+      }
     }
     if (e.key === "Escape") {
       closeCartDrawer();

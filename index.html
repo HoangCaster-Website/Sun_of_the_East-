@@ -1080,7 +1080,7 @@
   </button>
 
   <!-- Slide-Over Cart Drawer -->
-  <div class="cart-backdrop" id="cartBackdrop" role="dialog" aria-modal="true" aria-labelledby="cartDrawerTitle">
+  <div class="cart-backdrop" id="cartBackdrop" role="dialog" aria-modal="true" aria-labelledby="cartDrawerTitle" inert>
     <aside class="cart-drawer">
       <div class="cart-header">
         <h3 id="cartDrawerTitle">Ihr Warenkorb</h3>
@@ -1091,7 +1091,7 @@
         <div id="cartItemsContainer"></div>
 
         <form id="cartOrderForm" class="cart-checkout-form" novalidate>
-          <h4>Bestelldaten für WhatsApp</h4>
+          <h4>Bestelldaten</h4>
           <div class="form-field">
             <label for="orderType">Bestellart</label>
             <select id="orderType" class="form-select">
@@ -1115,6 +1115,7 @@
             <label for="orderNote">Anmerkungen / Sonderwünsche</label>
             <textarea id="orderNote" class="form-textarea" placeholder="z. B. Nudeln statt Reis (+2,00 €), zusätzliche Stäbchen oder weniger scharf"></textarea>
           </div>
+          <p class="cart-print-hint">* Pflichtfelder für WhatsApp</p>
         </form>
       </div>
 
@@ -1127,10 +1128,19 @@
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.06 0C5.5 0 .16 5.34.16 11.9c0 2.1.55 4.15 1.6 5.95L0 24l6.33-1.66a11.85 11.85 0 0 0 5.73 1.46h.01c6.56 0 11.9-5.34 11.9-11.9 0-3.18-1.24-6.17-3.45-8.42ZM12.07 21.8h-.01a9.87 9.87 0 0 1-5.04-1.38l-.36-.21-3.76.99 1-3.66-.24-.38a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.13 1.03 7 2.9a9.82 9.82 0 0 1 2.9 7c0 5.46-4.44 9.89-9.88 9.89Z"/></svg>
           Per WhatsApp bestellen
         </button>
+        <div class="cart-print" role="group" aria-labelledby="cartPrintLabel" aria-describedby="cartPrintHint">
+          <p id="cartPrintLabel">Bestellbon drucken</p>
+          <div class="cart-print-options">
+            <button type="button" class="btn btn--outline btn--sm" data-print-order="58" aria-label="Bestellbon auf 58 mm drucken">58 mm</button>
+            <button type="button" class="btn btn--outline btn--sm" data-print-order="80" aria-label="Bestellbon auf 80 mm drucken">80 mm</button>
+          </div>
+          <p class="cart-print-hint" id="cartPrintHint">Im Druckdialog den Bondrucker und die passende Papierbreite auswählen.</p>
+        </div>
       </div>
     </aside>
   </div>
 
+  <article class="order-receipt" id="orderReceipt"></article>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <!-- Lightbox -->
